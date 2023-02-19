@@ -40,6 +40,10 @@ def streamlit_endpoint():
 async def fetch_url_nexrad(userinput: base_model.UserInputNexrad) -> dict:
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
+
+    # Establishes a connection to the nexrad database
+    c = basic_func.conn_filenames_nexrad()
+
     aws_url = f"https://noaa-nexrad-level2.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.month:02}/{userinput.date:02}/{userinput.station}"   
     return {'url': aws_url }
 
@@ -48,6 +52,10 @@ async def fetch_url_nexrad(userinput: base_model.UserInputNexrad) -> dict:
 async def fetch_url_goes(userinput: base_model.UserInputGOES) -> dict:
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
+
+    # Establishes a connection to the goes database
+    c = basic_func.conn_filenames_goes()
+    
     aws_url = f"https://noaa-goes18.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.day:02}/{userinput.hour:02}"
     return {'url': aws_url }
 

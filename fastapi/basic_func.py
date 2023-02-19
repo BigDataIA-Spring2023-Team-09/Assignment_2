@@ -1,3 +1,4 @@
+import sqlite3
 from dotenv import load_dotenv
 import boto3
 import os
@@ -133,3 +134,91 @@ def copy_to_public_bucket(src_bucket_name, src_object_key, dest_bucket_name, des
         'Key': src_object_key
     }
     s3client.copy_object(Bucket=dest_bucket_name, CopySource=copy_source, Key=dest_object_key)
+
+
+# Establishes a connection to the goes database
+def conn_filenames_goes():
+    conn = sqlite3.connect("filenames_goes.db")
+    c = conn.cursor()
+    return c
+
+
+# Lists the years present in goes database
+def list_years_goes(c):
+    query = c.execute("SELECT DISTINCT Year FROM filenames_goes")
+    year_list = [row[0] for row in query]
+    return year_list
+
+
+# Lists the days for the selected year from goes database
+def list_days_goes(c, year):
+    query = "SELECT DISTINCT Day FROM filenames_goes where Year = ?"
+    result = c.execute(query, (year,))
+    day_list = [row[0] for row in result]
+    return day_list
+
+
+# Lists the hours for the selected year and day goes database
+def list_hours_goes(c, year, day):
+    query = "SELECT DISTINCT Hour FROM filenames_goes where Year=? and Day=?"
+    result = c.execute(query, (year, day,))
+    hour_list = [row[0] for row in result]
+    return hour_list
+
+
+# Lists the files present in the goes18 bucket for the selected year, day and hour
+def list_filenames_goes(c, year, day, hour):
+    result = s3client.list_objects(Bucket='noaa-goes18', Prefix=f"ABI-L1b-RadC/{year}/{day}/{hour}/")
+    file_list = []
+    files = result.get("Contents", [])
+    for file in files:
+        file_list.append(file["Key"].split('/')[-1])
+    return file_list
+
+
+# Establishes a connection to the nexrad database
+def conn_filenames_nexrad():
+    conn = sqlite3.connect("filenames_nexrad.db")
+    c = conn.cursor()
+    return c
+
+
+# Lists the years present in nexrad database
+def list_years_nexrad(c):
+    query = c.execute("SELECT DISTINCT Year FROM filenames_nexrad")
+    year_list = [row[0] for row in query]
+    return year_list
+
+
+# Lists the months for the selected year from nexrad database
+def list_months_nexrad(c, year):
+    query = "SELECT DISTINCT Month FROM filenames_nexrad where Year = ?"
+    result = c.execute(query, (year,))
+    month_list = [row[0] for row in result]
+    return month_list
+
+
+# Lists the days for the selected year and month from nexrad database
+def list_days_nexrad(c, year, month):
+    query = "SELECT DISTINCT Day FROM filenames_nexrad where Year = ? and Month = ?"
+    result = c.execute(query, (year, month))
+    day_list = [row[0] for row in result]
+    return day_list
+
+
+# Lists the stations for the selected year, month and day from nexrad database
+def list_stations_nexrad(c, year, month, day):
+    query = "SELECT DISTINCT Station FROM filenames_nexrad where Year = ? and Month = ? and Day = ?"
+    result = c.execute(query, (year, month, day))
+    station_list = [row[0] for row in result] 
+    return station_list   
+
+
+# Lists the files present in the nexrad bucket for the selected year, month, day and station
+def list_filenames_nexrad(c, year, month, day, station):
+    result = s3client.list_objects(Bucket='noaa-nexrad-level2', Prefix=f"{year}/{month}/{day}/{station}/")
+    file_list = []
+    files = result.get("Contents", [])
+    for file in files:
+        file_list.append(file["Key"].split('/')[-1])
+    return file_list
