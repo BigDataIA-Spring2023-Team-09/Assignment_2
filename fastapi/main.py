@@ -70,7 +70,7 @@ async def fetch_url_goes_from_name(userinput: base_model.UserInputName) -> dict:
         basic_func.copy_to_public_bucket(goes18_bucket, src_object_key, user_bucket_name, user_object_key)
 
         # Generate link from user bucket
-        aws_url = basic_func.generate_download_link(user_bucket_name, user_object_key)
+        aws_url = basic_func.generate_download_link_goes(user_bucket_name, user_object_key)
 
         # Returns the generated URL
         return {'url': aws_url }
@@ -89,12 +89,12 @@ async def fetch_url_nexrad_from_name(userinput: base_model.UserInputName) -> dic
     if basic_func.check_if_file_exists_in_s3_bucket(nexrad_bucket, userinput.name):
 
         # Generate file path from filename
-        src_object_key = basic_func.path_from_filename(userinput.name)
+        src_object_key = basic_func.path_from_filename_nexrad(userinput.name)
 
         # Define path where the file has to be written
         user_object_key = f'logs/nexrad/{userinput.name}'
 
-        # Copy file from GOES18 bucket to user bucket
+        # Copy file from nexrad bucket to user bucket
         basic_func.copy_to_public_bucket(nexrad_bucket, src_object_key, user_bucket_name, user_object_key)
 
         # Generate link from user bucket

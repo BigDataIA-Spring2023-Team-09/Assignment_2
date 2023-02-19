@@ -36,6 +36,7 @@ func_op = fetch_url(2022, 6, 21, 'KAMX')
 print(func_op)
 
 
+# Generates file path in goes18 bucket from file name
 def path_from_filename_goes(filename):
 
     ind = filename.index('s')
@@ -56,6 +57,7 @@ def path_from_filename_nexrad(filename):
     return file_path
 
 
+# Checks if the passed file exists in the specified bucket
 def check_if_file_exists_in_s3_bucket(bucket_name, file_name):
     try:
         s3client.head_object(Bucket=bucket_name, Key=file_name)
@@ -68,6 +70,7 @@ def check_if_file_exists_in_s3_bucket(bucket_name, file_name):
             raise
 
 
+# Generates the download URL of the specified file present in the given bucket and write logs in S3
 def generate_download_link_goes(bucket_name, object_key, expiration=3600):
     response = s3client.generate_presigned_url(
         ClientMethod='get_object',
@@ -81,6 +84,7 @@ def generate_download_link_goes(bucket_name, object_key, expiration=3600):
     return response
 
 
+# Generates the download URL of the specified file present in the given bucket and write logs in S3
 def generate_download_link_nexrad(bucket_name, object_key, expiration=3600):
     response = s3client.generate_presigned_url(
         ClientMethod='get_object',
@@ -122,6 +126,7 @@ def write_logs_nexrad(message : str):
     )
 
 
+# Copies the specified file from source bucket to destination bucket 
 def copy_to_public_bucket(src_bucket_name, src_object_key, dest_bucket_name, dest_object_key):
     copy_source = {
         'Bucket': src_bucket_name,
