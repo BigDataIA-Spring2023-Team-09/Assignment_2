@@ -5,6 +5,8 @@ import os
 import botocore
 import time
 
+load_dotenv()
+
 s3client = boto3.client('s3', 
                         region_name = 'us-east-1',
                         aws_access_key_id = os.environ.get('AWS_ACCESS_KEY'),
@@ -17,24 +19,6 @@ clientlogs = boto3.client('logs',
                         aws_access_key_id = os.environ.get('AWS_ACCESS_KEY'),
                         aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
                         )
-
-def say_hello():
-    return "Hello World"
-
-
-def fetch_url(
-    year=int,
-    month=int,
-    date=int,
-    station=str
-):
-    aws_nexrad_url = f"https://noaa-nexrad-level2.s3.amazonaws.com/index.html#{year:04}/{month:02}/{date:02}/{station:02}"
-    return aws_nexrad_url
-    
-
-print(say_hello())
-func_op = fetch_url(2022, 6, 21, 'KAMX')
-print(func_op)
 
 
 # Generates file path in goes18 bucket from file name
@@ -81,7 +65,7 @@ def generate_download_link_goes(bucket_name, object_key, expiration=3600):
         },
         ExpiresIn=expiration
     )
-    write_logs_goes(f"{[object_key.rsplit('/', 1)[-1],response]}")
+    # write_logs_goes(f"{[object_key.rsplit('/', 1)[-1],response]}")
     return response
 
 
@@ -95,7 +79,7 @@ def generate_download_link_nexrad(bucket_name, object_key, expiration=3600):
         },
         ExpiresIn=expiration
     )
-    write_logs_nexrad(f"{[object_key.rsplit('/', 1)[-1],response]}")
+    # write_logs_nexrad(f"{[object_key.rsplit('/', 1)[-1],response]}")
     return response
 
 
@@ -222,3 +206,47 @@ def list_filenames_nexrad(c, year, month, day, station):
     for file in files:
         file_list.append(file["Key"].split('/')[-1])
     return file_list
+
+
+#Performing filename validations on multiple conditions
+def validate_file(filename):
+    """Validate if user provided a valid file name to get URL"""
+    regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
+    prod, year, day, hour= read_metadata_noaa()
+    count=0
+    message=""
+    x=filename.split("_")
+    goes=x[2]
+    my_prod=x[1].split("-")
+    prod_name=my_prod[0]+"-"+my_prod[1]+"-"+my_prod[2]
+    start=x[3]
+    end=x[4]
+    create=x[5].split(".")
+    
+    if(regex.search(filename) != None):
+        count+=1
+        message="Please avoid special character in filename"
+    elif (x[0]!='OR'):
+        count+=1
+        message="Please provide valid prefix for Operational system real-time data"
+    elif (prod_name not in prod):
+        count+=1
+        message="Please provide valid product name"
+    elif ((goes!='G16') and (goes!='G18')):
+        count+=1
+        message="Please provide valid satellite ID"
+    elif ((start[0]!='s') or (len(start)!=15) or (start[1:5] not in year) or (start[5:8] not in day) or (start[8:10] not in hour)):
+        count+=1
+        message="Please provide valid start date"
+    elif ((end[0]!='e') or (len(end)!=15)):
+        count+=1
+        message="Please provide valid end date"
+    elif ((create[0][0]!='c') or (len(create[0])!=15)):
+        count+=1
+        message="Please provide valid create date"
+    elif (x[-1][-3:]!='.nc'):
+        count+=1
+        message="Please provide valid file extension"
+    elif (count==0):
+        message="Valid file"
+    return (message)

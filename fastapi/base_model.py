@@ -1,4 +1,11 @@
 from pydantic import BaseModel, Field, validator
+from typing import Dict
+
+class UserInput(BaseModel):
+    year:int
+    month:int
+    date:int
+    station:str
 
 class UserInputNexrad(BaseModel):
     year:int
@@ -25,3 +32,8 @@ class UserInputGOES(BaseModel):
 
 class UserInputName(BaseModel):
     name:str
+
+class ResponseModel(BaseModel):
+    message: str
+    status_code: int
+    data: Dict

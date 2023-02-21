@@ -1,11 +1,14 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Body
 from dotenv import load_dotenv
 import boto3
 import base_model
 import streamlit as st
 from starlette.responses import HTMLResponse
-import Assignment_2.fastapi.basic_func as basic_func
+import basic_func
+from pydantic import ValidationError
+from fastapi.responses import JSONResponse
+from pydantic.error_wrappers import ValidationError
 
 
 app =FastAPI()
@@ -31,9 +34,12 @@ async def say_hello() -> dict:
     return {"message":"Hello World"}
 
 
-@app.get("/streamlit")
-def streamlit_endpoint():
-    return st.embed_iframe("https://share.streamlit.io/streamlit/demo-uber-nyc-pickups/main/app.py")
+@app.post("/fetch_url")
+async def fetch_url(userinput: base_model.UserInput) -> dict:
+    # if userinput.date > 31:
+    #     return 400 bad request . return incorrect date
+    aws_nexrad_url = f"https://noaa-nexrad-level2.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.month:02}/{userinput.date:02}/{userinput.station}"
+    return {'url': aws_nexrad_url }
 
 
 @app.post("/fetch-url-nexrad")
@@ -55,9 +61,17 @@ async def fetch_url_goes(userinput: base_model.UserInputGOES) -> dict:
 
     # Establishes a connection to the goes database
     c = basic_func.conn_filenames_goes()
-    
+
     aws_url = f"https://noaa-goes18.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.day:02}/{userinput.hour:02}"
     return {'url': aws_url }
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": exc.errors()}
+    )
 
 
 @app.post("/fetch-url-goes-from-name")
@@ -65,11 +79,11 @@ async def fetch_url_goes_from_name(userinput: base_model.UserInputName) -> dict:
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
 
-    # Checks if the provided file exists in goes bucket
-    if basic_func.check_if_file_exists_in_s3_bucket(goes18_bucket, userinput.name):
+    # Generate file path from filename
+    src_object_key = basic_func.path_from_filename_goes(userinput.name)
 
-        # Generate file path from filename
-        src_object_key = basic_func.path_from_filename_goes(userinput.name)
+    # Checks if the provided file exists in goes bucket
+    if basic_func.check_if_file_exists_in_s3_bucket(goes18_bucket, src_object_key):
 
         # Define path where the file has to be written
         user_object_key = f'logs/goes18/{userinput.name}'
@@ -81,7 +95,7 @@ async def fetch_url_goes_from_name(userinput: base_model.UserInputName) -> dict:
         aws_url = basic_func.generate_download_link_goes(user_bucket_name, user_object_key)
 
         # Returns the generated URL
-        return {'url': aws_url }
+        return {'url': aws_url.split("?")[0] }
     
     else:
         # Returns a message saying file does not exist in the bucket
@@ -93,11 +107,11 @@ async def fetch_url_nexrad_from_name(userinput: base_model.UserInputName) -> dic
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
 
-    # Checks if the provided file exists in nexrad bucket
-    if basic_func.check_if_file_exists_in_s3_bucket(nexrad_bucket, userinput.name):
+    # Generate file path from filename
+    src_object_key = basic_func.path_from_filename_nexrad(userinput.name)
 
-        # Generate file path from filename
-        src_object_key = basic_func.path_from_filename_nexrad(userinput.name)
+    # Checks if the provided file exists in nexrad bucket
+    if basic_func.check_if_file_exists_in_s3_bucket(nexrad_bucket, src_object_key):
 
         # Define path where the file has to be written
         user_object_key = f'logs/nexrad/{userinput.name}'
@@ -109,7 +123,7 @@ async def fetch_url_nexrad_from_name(userinput: base_model.UserInputName) -> dic
         aws_url = basic_func.generate_download_link_nexrad(user_bucket_name, user_object_key)
 
         # Returns the generated URL
-        return {'url': aws_url }
+        return {'url': aws_url.split("?")[0] }
     
     else:
         # Returns a message saying file does not exist in the bucket
