@@ -158,7 +158,7 @@ async def list_years_goes() -> dict:
     return {"year_list":year_list}
 
 
-@app.post("/list-days-goes/{year}", tags=["GOES18 filters"])
+@app.post("/list-days-goes", tags=["GOES18 filters"])
 async def list_days_goes(year:str) -> dict:
 
     # Establishes a connection to the goes database
@@ -291,3 +291,16 @@ async def fetch_url_nexrad_from_name(name:str) -> dict:
     else:
         # Returns a message saying file does not exist in the bucket
         return {"message":"404: File not found"}
+
+
+@app.get("/mapping-stations", tags=["Mapping"])
+async def mapping_stations() -> dict:
+
+    # Preprocess the collected data for mapping
+    final_df = basic_func.preprocess_mapping_data()
+
+    # Enter the processed data into database
+    basic_func.write_to_db(final_df)
+
+    #Reading the respective location features from DB and creating circle markers, pop-up markers for each station
+    basic_func.read_from_db()
