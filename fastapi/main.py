@@ -42,36 +42,175 @@ async def fetch_url(userinput: base_model.UserInput) -> dict:
     return {'url': aws_nexrad_url }
 
 
-@app.post("/fetch-url-nexrad")
-async def fetch_url_nexrad(userinput: base_model.UserInputNexrad) -> dict:
-    # if userinput.date > 31:
-    #     return 400 bad request . return incorrect date
+@app.get("/list-years-nexrad")
+async def list_years_nexrad() -> dict:
 
     # Establishes a connection to the nexrad database
     c = basic_func.conn_filenames_nexrad()
 
-    aws_url = f"https://noaa-nexrad-level2.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.month:02}/{userinput.date:02}/{userinput.station}"   
+    # Lists the years present in nexrad database
+    year_list = basic_func.list_years_nexrad(c)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"year_list":year_list}
+
+
+@app.post("/list-months-nexrad")
+async def list_months_nexrad(year: int) -> dict:
+
+    # Establishes a connection to the nexrad database
+    c = basic_func.conn_filenames_nexrad()
+
+    # Lists the months for the selected year from nexrad database
+    month_list = basic_func.list_months_nexrad(c, year)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"month_list":month_list}
+
+
+@app.post("/list-days-nexrad")
+async def list_days_nexrad(year: int, month: int) -> dict:
+
+    # Establishes a connection to the nexrad database
+    c = basic_func.conn_filenames_nexrad()
+
+    # Lists the days for the selected year and month from nexrad database
+    days_list = basic_func.list_days_nexrad(c, year, month)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"days_list":days_list}
+
+
+@app.post("/list-stations-nexrad")
+async def list_stations_nexrad(year: int, month: int, day:int) -> dict:
+
+    # Establishes a connection to the nexrad database
+    c = basic_func.conn_filenames_nexrad()
+
+    # Lists the stations for the selected year, month and day from nexrad database
+    stations_list = basic_func.list_stations_nexrad(c, year, month, day)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"stations_list":stations_list}
+
+
+@app.post("/list-files-nexrad")
+async def list_files_nexrad(year: int, month: int, day:int, station:str) -> dict:
+
+    # Lists the files present in the nexrad bucket for the selected year, month, day and station
+    file_list = basic_func.list_filenames_nexrad(year, month, day, station)
+
+    return {"file_list":file_list}
+
+
+@app.post("/fetch-url-nexrad")
+async def fetch_url_nexrad(userinput: base_model.UserInputName) -> dict:
+    # if userinput.date > 31:
+    #     return 400 bad request . return incorrect date
+
+    # Generates file path in nexrad bucket from file name
+    file_path = basic_func.path_from_filename_nexrad(userinput.name)
+
+    # Define path where the file has to be written
+    user_object_key = f'logs/nexrad/{userinput.name}'
+
+    # Copies the specified file from source bucket to destination bucket 
+    basic_func.copy_to_public_bucket(nexrad_bucket, file_path, user_bucket_name, user_object_key)
+
+    # Generates the download URL of the specified file present in the given bucket and write logs in S3
+    aws_url = basic_func.generate_download_link_nexrad(user_bucket_name, user_object_key) 
+
     return {'url': aws_url }
 
 
-@app.post("/fetch-url-goes")
-async def fetch_url_goes(userinput: base_model.UserInputGOES) -> dict:
-    # if userinput.date > 31:
-    #     return 400 bad request . return incorrect date
+@app.get("/list-years-goes")
+async def list_years_goes() -> dict:
 
     # Establishes a connection to the goes database
     c = basic_func.conn_filenames_goes()
 
-    aws_url = f"https://noaa-goes18.s3.amazonaws.com/index.html#{userinput.year:04}/{userinput.day:02}/{userinput.hour:02}"
+    # Lists the years present in goes database
+    year_list = basic_func.list_years_goes(c)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"year_list":year_list}
+
+
+@app.get("/list-days-goes")
+async def list_days_goes(year:int) -> dict:
+
+    # Establishes a connection to the goes database
+    c = basic_func.conn_filenames_goes()
+
+    # Lists the days for the selected year from goes database
+    days_list = basic_func.list_days_goes(c, year)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"days_list":days_list}
+
+
+@app.get("/list-hours-goes")
+async def list_hours_goes(year:int, day:int) -> dict:
+
+    # Establishes a connection to the goes database
+    c = basic_func.conn_filenames_goes()
+
+    # Lists the hours for the selected year and day goes database
+    hours_list = basic_func.list_hours_goes(c, year, day)
+
+    # Clean up
+    basic_func.conn_close(c)
+
+    return {"hours_list":hours_list}
+
+
+@app.post("/list-files-goes")
+async def fetch_url_goes(year:int, day:int, hour:int) -> dict:
+
+    # Lists the files present in the goes18 bucket for the selected year, day and hour
+    file_list = basic_func.list_filenames_goes(year, day, hour)
+
+    return {"file_list":file_list}
+
+
+@app.post("/fetch-url-goes")
+async def fetch_url_goes(userinput: base_model.UserInputName) -> dict:
+    # if userinput.date > 31:
+    #     return 400 bad request . return incorrect date
+
+    # Generates file path in goes18 bucket from file name
+    file_path = basic_func.path_from_filename_goes(userinput.name)
+
+    # Define path where the file has to be written
+    user_object_key = f'logs/goes18/{userinput.name}'
+
+    # Copies the specified file from source bucket to destination bucket 
+    basic_func.copy_to_public_bucket(goes18_bucket, file_path, user_bucket_name, user_object_key)
+
+    # Generates the download URL of the specified file present in the given bucket and write logs in S3
+    aws_url = basic_func.generate_download_link_goes(user_bucket_name, user_object_key) 
+
     return {'url': aws_url }
 
 
-@app.exception_handler(ValidationError)
-async def validation_exception_handler(request: Request, exc: ValidationError):
-    return JSONResponse(
-        status_code=400,
-        content={"detail": exc.errors()}
-    )
+# @app.exception_handler(ValidationError)
+# async def validation_exception_handler(request: Request, exc: ValidationError):
+#     return JSONResponse(
+#         status_code=400,
+#         content={"detail": exc.errors()}
+#     )
 
 
 @app.post("/fetch-url-goes-from-name")
@@ -128,12 +267,3 @@ async def fetch_url_nexrad_from_name(userinput: base_model.UserInputName) -> dic
     else:
         # Returns a message saying file does not exist in the bucket
         return {"message":"404: File not found"}
-
-
-# user_bucket_name = os.environ.get('USER_BUCKET_NAME')
-# user_object_key = f'logs/goes18/{UserInputName.name}'
-
-# @app.post("/fetch_url_from_name")
-# async def fetch_url_from_name(userinputname: UserInputName) -> dict:
-#     aws_goes_url
-#     return {'url': aws_goes_url }

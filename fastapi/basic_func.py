@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from dotenv import load_dotenv
 import boto3
@@ -5,13 +6,17 @@ import os
 import botocore
 import time
 
+
 load_dotenv()
 
+
+#Establish connection to client
 s3client = boto3.client('s3', 
                         region_name = 'us-east-1',
                         aws_access_key_id = os.environ.get('AWS_ACCESS_KEY'),
                         aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
                         )
+
 
 #Establish connection to logs
 clientlogs = boto3.client('logs', 
@@ -151,7 +156,7 @@ def list_hours_goes(c, year, day):
 
 
 # Lists the files present in the goes18 bucket for the selected year, day and hour
-def list_filenames_goes(c, year, day, hour):
+def list_filenames_goes(year, day, hour):
     result = s3client.list_objects(Bucket='noaa-goes18', Prefix=f"ABI-L1b-RadC/{year}/{day}/{hour}/")
     file_list = []
     files = result.get("Contents", [])
@@ -199,13 +204,31 @@ def list_stations_nexrad(c, year, month, day):
 
 
 # Lists the files present in the nexrad bucket for the selected year, month, day and station
-def list_filenames_nexrad(c, year, month, day, station):
+def list_filenames_nexrad(year, month, day, station):
     result = s3client.list_objects(Bucket='noaa-nexrad-level2', Prefix=f"{year}/{month}/{day}/{station}/")
     file_list = []
     files = result.get("Contents", [])
     for file in files:
         file_list.append(file["Key"].split('/')[-1])
     return file_list
+
+
+#Reading metadata from SQLite DB and storing in sets
+def read_metadata_noaa():
+    """Read the metadata from sqlite db"""
+    prod=set()
+    year=set()
+    day=set()
+    hour=set()
+    db = sqlite3.connect("filenames_goes.db")
+    cursor = db.cursor()
+    meta_data=cursor.execute('''SELECT Product , Year , Day , Hour FROM filenames_goes''')
+    for record in meta_data:
+        prod.add(record[0])
+        year.add(record[1])
+        day.add(record[2])
+        hour.add(record[3])
+    return prod, year, day, hour
 
 
 #Performing filename validations on multiple conditions
@@ -250,3 +273,8 @@ def validate_file(filename):
     elif (count==0):
         message="Valid file"
     return (message)
+
+
+# Clean up
+def conn_close(c):
+    c.close()
