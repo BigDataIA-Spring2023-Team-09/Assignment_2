@@ -1,14 +1,12 @@
 import os
-from fastapi import FastAPI, HTTPException, Request, Body
+import sqlite3
+from fastapi import FastAPI, Response
 from dotenv import load_dotenv
 import boto3
 import base_model
-import streamlit as st
-from starlette.responses import HTMLResponse
 import basic_func
-from pydantic import ValidationError
-from fastapi.responses import JSONResponse
-from pydantic.error_wrappers import ValidationError
+import pandas as pd
+import streamlit as st
 
 
 app =FastAPI()
@@ -293,14 +291,20 @@ async def fetch_url_nexrad_from_name(name:str) -> dict:
         return {"message":"404: File not found"}
 
 
-@app.get("/mapping-stations", tags=["Mapping"])
-async def mapping_stations() -> dict:
+@app.get("/mapping-stations", tags=["Mapping"], response_class=Response)
+async def mapping_stations(response: Response) -> str:
+    # Retrieve data from database
+    db = sqlite3.connect('location.db')
+    cursor = db.cursor()
+    cursor.execute('''SELECT lat, long, City FROM loaction_radar''')
+    data = cursor.fetchall()
+    
+    # Create DataFrame and convert to CSV string
+    df = pd.DataFrame(data, columns=["column1", "column2", "column3"])
+    csv_string = df.to_csv(index=False)
 
-    # Preprocess the collected data for mapping
-    final_df = basic_func.preprocess_mapping_data()
+    # # Set response headers and return CSV string
+    response.headers["Content-Disposition"] = "attachment; filename=my_data.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return csv_string
 
-    # Enter the processed data into database
-    basic_func.write_to_db(final_df)
-
-    #Reading the respective location features from DB and creating circle markers, pop-up markers for each station
-    basic_func.read_from_db()

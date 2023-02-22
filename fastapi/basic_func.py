@@ -1,3 +1,4 @@
+import json
 import re
 import sqlite3
 from bs4 import BeautifulSoup
@@ -7,10 +8,8 @@ import os
 import botocore
 import time
 import requests
-import streamlit_folium as stf
-import folium
-import streamlit as st
 import pandas as pd
+import csv
 
 
 load_dotenv()
@@ -285,93 +284,4 @@ def validate_file(filename):
 
 # Clean up
 def conn_close(c):
-    c.close()
-
-
-def preprocess_mapping_data():
-    global final_df
-    url="https://en.wikipedia.org/wiki/NEXRAD#Operational_locations"
-    response=requests.get(url)
-    soup=BeautifulSoup(response.text, 'html.parser')
-    tables=soup.find_all("table")
-    for index, table in enumerate(tables):
-        if ("List of NEXRAD sites and their coordinates" in str(table)):
-            table_index = index
-
-    data = pd.DataFrame(columns=["State", "City", "Identifier", "Coordinates"])
-
-    for row in tables[table_index].tbody.find_all("tr"):
-        col = row.find_all("td")
-        if (col != []):
-            state = col[0].text
-            city = col[1].text
-            identifier = col[2].text
-            coordinates = col[3].text
-            data = data.append({"State":state, "City":city, "Identifier":identifier, "Coordinates":coordinates}, ignore_index=True)
-            
-    data['Coordinates']=data['Coordinates'].apply(transformCol)
-
-    df=pd.DataFrame(columns=['lat', 'long'])
-    for i in data['Coordinates']:
-        lati=float(i.split(",")[0])
-        longi=float(i.split(",")[1].rstrip())
-        df=df.append({'lat':lati, 'long':longi}, ignore_index=True)
-    final_df=pd.concat([data, df], axis=1)
-
-    
-
-    #Performing computations to extract latitude and longitude values from 'Coordinates' column
-    def transformCol(x):
-        return x.split("/")[2].split("\ufeff")[0].replace(";",",").lstrip()
-
-    return final_df
-
-    
-
-
-
-database_file_name = 'location.db'
-
-
-def write_to_db(final_df):
-    db = sqlite3.connect(database_file_name)
-    final_df.to_sql(name='loaction_radar', con=db, if_exists='replace', index=False)
-    db.commit()
-    db.close()
-    del final_df
-
-#Reading the respective location features from DB and creating circle markers, pop-up markers for each
-def read_from_db():
-    latitudes=[]
-    longitudes=[]
-    labels=[]
-    db = sqlite3.connect(database_file_name)
-    cursor = db.cursor()
-    sat_data=cursor.execute('''SELECT lat, long, City FROM loaction_radar''')
-    satellite = folium.map.FeatureGroup()
-    for record in sat_data:
-        satellite.add_child(
-                folium.features.CircleMarker(
-                    [record[0], record[1]],
-                    radius=5, # define how big you want the circle markers to be
-                    color='yellow',
-                    fill=True,
-                    fill_color='blue',
-                    fill_opacity=0.6
-                )
-            )
-        latitudes.append(record[0])
-        longitudes.append(record[1])
-        labels.append(record[2])
-    
-    # create map with a default starting location
-    satellite_map = folium.Map(location=[37.6, -95.665], zoom_start=3)
-
-    # add pop-up text to each marker on the map
-    for lat, lng, label in zip(latitudes, longitudes, labels):
-        folium.Marker([lat, lng], popup=label).add_to(satellite_map)    
-
-    # add satellite to map and display it using streamlit-folium package
-    satellite_map.add_child(satellite)
-    stf.st_folium(satellite_map, width=700, height=460)
-    st.text("Click on marker to view city name!")
+    c.close()    
