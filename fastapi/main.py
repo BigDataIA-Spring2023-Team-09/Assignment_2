@@ -7,7 +7,7 @@ import base_model
 import basic_func
 import pandas as pd
 import streamlit as st
-
+from passlib.context import CryptContext
 
 app =FastAPI()
 
@@ -31,6 +31,40 @@ nexrad_bucket = 'noaa-nexrad-level2'
 async def say_hello() -> dict:
     return {"message":"Hello World"}
 
+@app.post("/landing_page")
+async def landing_page(data: dict):
+    menu = ["Home", "Login"]
+    choice = data["choice"]
+    result = {}
+    
+    if choice == "Home":
+        result["subheader"] = "Home"
+        result["message"] = "Welcome to NOAA dashboard!"
+        
+    elif choice == "Login":
+        result["subheader"] = "Login"
+        email = data["email"]
+        password = data["password"]
+
+        fixed_salt = "MyFixedSaltererererere"
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        hash_pass=pwd_context.hash(password, salt=str(fixed_salt))
+        db = sqlite3.connect('users.db')
+        df = pd.read_sql_query('''SELECT email, hashed_password FROM users''', db)
+        count=0
+        ind=0
+        for i, em in enumerate(df['email']):
+            if em==email:
+                count+=1
+                ind=i
+        if count==0:
+            result["warning"] = "Incorrect email"
+        else:
+            if df['hashed_password'][ind]==hash_pass:
+                result["success"] = "Logged in as {}".format(email)
+            else:
+                result["warning"] = "Incorrect password"
+    return result
 
 @app.post("/fetch_url")
 async def fetch_url(userinput: base_model.UserInput) -> dict:
