@@ -5,7 +5,7 @@ import os
 if 'username' not in st.session_state:
     st.session_state.username = ''
 
-if not st.session_state.username == "":
+if not st.session_state.username == "" and "access_token" in st.experimental_get_query_params():
     st.markdown("<h1 style='text-align: center;'>NEXRAD</h1>", unsafe_allow_html=True)
     st.header("")
     st.header("Search by Fields")

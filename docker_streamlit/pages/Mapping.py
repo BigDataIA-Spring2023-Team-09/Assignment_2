@@ -15,7 +15,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 if 'username' not in st.session_state:
     st.session_state.username = ''
 
-if not st.session_state.username == "":
+if not st.session_state.username == "" and "access_token" in st.experimental_get_query_params():
     st.header(':blue[Operational locations of NEXRAD sites]')
     with st.spinner('Refreshing map...'):
         # Make request to FastAPI endpoint and get CSV string

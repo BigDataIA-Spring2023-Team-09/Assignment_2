@@ -143,6 +143,7 @@ def get_password_hash(password):
 
 
 def get_user(db, username: str):
+    my_dict={}
     for i in range(len(db)):
         if (db[i]['username']==username):
             my_dict=data[i]
