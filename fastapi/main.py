@@ -15,64 +15,11 @@ from jose import JWTError, jwt
 import json
 from datetime import datetime, timedelta
 
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = "fa5296715ded673b98da4a16672646ca2184ef4634fdedfeebfad085615b1ddc"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 2
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-class Login(BaseModel):
-    username: str
-    password: str
-
-db = sqlite3.connect('users.db')
-cursor = db.cursor()
-cursor.execute('''select * from users''')
-
-# Fetch all the rows as a list of tuples
-rows = cursor.fetchall()
-
-# Convert the rows to a list of dictionaries
-data = []
-for row in rows:
-    # Create a dictionary with keys corresponding to the table column names
-    record = {
-        "username": row[0],
-        "full_name": row[1],
-        "email": row[2],
-        "hashed_password": row[3]
-    }
-    data.append(record)
-
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 app =FastAPI()
 
-
 load_dotenv()
-
 
 s3client = boto3.client('s3', 
                         region_name = 'us-east-1',
@@ -85,138 +32,76 @@ goes18_bucket = 'noaa-goes18'
 user_bucket_name = os.environ.get('USER_BUCKET_NAME')
 nexrad_bucket = 'noaa-nexrad-level2'
 
+#Old function, replaced with /token decorator.
 
-@app.get("/say-hello")
-async def say_hello() -> dict:
-    return {"message":"Hello World"}
-
-@app.post("/landing_page")
-async def landing_page(data: dict):
-    menu = ["Home", "Login"]
-    choice = data["choice"]
-    result = {}
+# @app.post("/landing_page")
+# async def landing_page(data: dict):
+#     menu = ["Home", "Login"]
+#     choice = data["choice"]
+#     result = {}
     
-    if choice == "Home":
-        result["subheader"] = "Home"
-        result["message"] = "Welcome to NOAA dashboard!"
+#     if choice == "Home":
+#         result["subheader"] = "Home"
+#         result["message"] = "Welcome to NOAA dashboard!"
         
-    elif choice == "Login":
-        result["subheader"] = "Login"
-        email = data["email"]
-        password = data["password"]
+#     elif choice == "Login":
+#         result["subheader"] = "Login"
+#         email = data["email"]
+#         password = data["password"]
 
-        fixed_salt = "MyFixedSaltererererere"
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        hash_pass=pwd_context.hash(password, salt=str(fixed_salt))
-        db = sqlite3.connect('users.db')
-        df = pd.read_sql_query('''SELECT email, hashed_password FROM users''', db)
-        count=0
-        ind=0
-        for i, em in enumerate(df['email']):
-            if em==email:
-                count+=1
-                ind=i
-        if count==0:
-            # raise HTTPException(
-            #     status_code=status.HTTP_401_UNAUTHORIZED,
-            #     detail="Incorrect email"
-            # )
-            result["warning"] = "Incorrect email"
-        else:
-            if df['hashed_password'][ind]==hash_pass:
-                result["success"] = "Logged in as {}".format(email)
+#         fixed_salt = "MyFixedSaltererererere"
+#         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+#         hash_pass=pwd_context.hash(password, salt=str(fixed_salt))
+#         db = sqlite3.connect('users.db')
+#         df = pd.read_sql_query('''SELECT email, hashed_password FROM users''', db)
+#         count=0
+#         ind=0
+#         for i, em in enumerate(df['email']):
+#             if em==email:
+#                 count+=1
+#                 ind=i
+#         if count==0:
+#             # raise HTTPException(
+#             #     status_code=status.HTTP_401_UNAUTHORIZED,
+#             #     detail="Incorrect email"
+#             # )
+#             result["warning"] = "Incorrect email"
+#         else:
+#             if df['hashed_password'][ind]==hash_pass:
+#                 result["success"] = "Logged in as {}".format(email)
 
-            else:
-                # raise HTTPException(
-                #     status_code=status.HTTP_401_UNAUTHORIZED,
-                #     detail="Incorrect password"
-                # )
-                result["warning"] = "Incorrect password"
-    return result
+#             else:
+#                 # raise HTTPException(
+#                 #     status_code=status.HTTP_401_UNAUTHORIZED,
+#                 #     detail="Incorrect password"
+#                 # )
+#                 result["warning"] = "Incorrect password"
+#     return result
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def get_user(db, username: str):
-    my_dict={}
-    for i in range(len(db)):
-        if (db[i]['username']==username):
-            my_dict=data[i]
-    if my_dict:
-        return UserInDB(**my_dict)
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    user = get_user(data, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
-
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-@app.post("/token", response_model=Token)
-async def login_for_access_token(input: Login):
-    user = authenticate_user(data, input.username, input.password)
+@app.post("/token", response_model=base_model.Token)
+async def login_for_access_token(input: base_model.Login):
+    data=basic_func.get_users_data()
+    user = basic_func.authenticate_user(data, input.username, input.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
+    access_token_expires = timedelta(minutes=basic_func.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = basic_func.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@app.get("/users/me/", response_model=base_model.User)
+async def read_users_me(current_user: base_model.User = Depends(basic_func.get_current_active_user)):
     return current_user
 
 
 @app.get("/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
+async def read_own_items(current_user: base_model.User = Depends(basic_func.get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
 
 @app.post("/fetch_url")
