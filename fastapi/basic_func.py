@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 
 # to get a string like this run:
 # openssl rand -hex 32
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+SECRET_KEY = "fa5296715ded673b98da4a16672646ca2184ef4634fdedfeebfad085615b1ddc"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 2
 
