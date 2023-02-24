@@ -15,6 +15,7 @@ services:
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - USER_BUCKET_NAME=${USER_BUCKET_NAME}
+      - SECRET_KEY=${JWT_SECRET_KEY}
 
     volumes:
       - ./application/key.json:/fastapi/key.json
