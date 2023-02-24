@@ -12,8 +12,8 @@ This project builds up on the Assignment-1 deliverables in which we built a data
 * <code>goes18.py</code> : This file generates the UI using streamlit packages to display various filters for the user to use and fetch the required file from the NOAA GOES 18 public S3 bucket. It also enables the user to enter the name of the required file and provides the user with the URL to download it.
 * <code>mapping.py</code>: We scraped the URL https://en.wikipedia.org/wiki/NEXRAD#Operational_locations for radar sites. Stored the location table in <code>SQLite DB</code> and plotted an interactive map using <code>folium</code> package.<br>
 
-### Codelab documentation for detailed explanation:
-
+### Documentation for detailed explanation:
+https://northeastern-my.sharepoint.com/:w:/g/personal/senthilnathan_l_northeastern_edu/EW-ewk9XCppMua62mNaKEsMBPO1I752-aLWQjYEBs2ruyQ?e=4%3ARFz84J&at=9&CID=3254ADBB-B5CC-4A56-BC82-D7E6FFBF2AD2
 
 ### Application public link:
 http://34.74.233.133:8000
