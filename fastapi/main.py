@@ -311,27 +311,40 @@ async def fetch_url_goes_from_name(name:str) -> dict:
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
 
-    # Generate file path from filename
-    src_object_key = basic_func.path_from_filename_goes(name)
+    if (name == ""): 
+        return{"url":"Please enter file name"}
+        
 
-    # Checks if the provided file exists in goes bucket
-    if basic_func.check_if_file_exists_in_s3_bucket(goes18_bucket, src_object_key):
-
-        # Define path where the file has to be written
-        user_object_key = f'logs/goes18/{name}'
-
-        # Copy file from GOES18 bucket to user bucket
-        basic_func.copy_to_public_bucket(goes18_bucket, src_object_key, user_bucket_name, user_object_key)
-
-        # Generate link from user bucket
-        aws_url = basic_func.generate_download_link_goes(user_bucket_name, user_object_key)
-
-        # Returns the generated URL
-        return {'url': aws_url.split("?")[0] }
-    
     else:
-        # Returns a message saying file does not exist in the bucket
-        return {"message":"404: File not found"}
+
+        file_integrity = basic_func.validate_file_goes(name)
+
+        if (file_integrity == 'Valid file') :
+
+            # Generate file path from filename
+            src_object_key = basic_func.path_from_filename_goes(name)
+
+            # Checks if the provided file exists in goes bucket
+            if basic_func.check_if_file_exists_in_s3_bucket(goes18_bucket, src_object_key):
+
+                # Define path where the file has to be written
+                user_object_key = f'logs/goes18/{name}'
+
+                # Copy file from GOES18 bucket to user bucket
+                basic_func.copy_to_public_bucket(goes18_bucket, src_object_key, user_bucket_name, user_object_key)
+
+                # Generate link from user bucket
+                aws_url = basic_func.generate_download_link_goes(user_bucket_name, user_object_key)
+
+                # Returns the generated URL
+                return {'url': aws_url.split("?")[0] }
+            
+            else:
+                # Returns a message saying file does not exist in the bucket
+                return {"url":"404: File not found"}
+
+        else:
+            return {"url":file_integrity}
 
 
 @app.post("/fetch-url-nexrad-from-name", tags=["Nexrad name"])
@@ -339,27 +352,40 @@ async def fetch_url_nexrad_from_name(name:str) -> dict:
     # if userinput.date > 31:
     #     return 400 bad request . return incorrect date
 
-    # Generate file path from filename
-    src_object_key = basic_func.path_from_filename_nexrad(name)
+    if (name == ""): 
+        return{"url":"Please enter file name"}
+        
 
-    # Checks if the provided file exists in nexrad bucket
-    if basic_func.check_if_file_exists_in_s3_bucket(nexrad_bucket, src_object_key):
-
-        # Define path where the file has to be written
-        user_object_key = f'logs/nexrad/{name}'
-
-        # Copy file from nexrad bucket to user bucket
-        basic_func.copy_to_public_bucket(nexrad_bucket, src_object_key, user_bucket_name, user_object_key)
-
-        # Generate link from user bucket
-        aws_url = basic_func.generate_download_link_nexrad(user_bucket_name, user_object_key)
-
-        # Returns the generated URL
-        return {'url': aws_url.split("?")[0] }
-    
     else:
-        # Returns a message saying file does not exist in the bucket
-        return {"message":"404: File not found"}
+        
+        file_integrity = basic_func.validate_file_nexrad(name)
+
+        if (file_integrity == 'Valid file') :
+
+            # Generate file path from filename
+            src_object_key = basic_func.path_from_filename_nexrad(name)
+
+            # Checks if the provided file exists in nexrad bucket
+            if basic_func.check_if_file_exists_in_s3_bucket(nexrad_bucket, src_object_key):
+
+                # Define path where the file has to be written
+                user_object_key = f'logs/nexrad/{name}'
+
+                # Copy file from nexrad bucket to user bucket
+                basic_func.copy_to_public_bucket(nexrad_bucket, src_object_key, user_bucket_name, user_object_key)
+
+                # Generate link from user bucket
+                aws_url = basic_func.generate_download_link_nexrad(user_bucket_name, user_object_key)
+
+                # Returns the generated URL
+                return {'url': aws_url.split("?")[0] }
+            
+            else:
+                # Returns a message saying file does not exist in the bucket
+                return {"url":"404: File not found"}
+
+        else:
+            return {"url":file_integrity}
 
 
 @app.get("/mapping-stations", tags=["Mapping"], response_class=Response)

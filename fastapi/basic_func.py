@@ -112,7 +112,7 @@ def generate_download_link_nexrad(bucket_name, object_key, expiration=3600):
 #Generating logs with given message in cloudwatch
 def write_logs_goes(message : str):
     clientlogs.put_log_events(
-    logGroupName = "assignment1-logs",
+    logGroupName = "assignment2-logs",
     logStreamName = "goes-logs",
     logEvents = [
         {
@@ -126,7 +126,7 @@ def write_logs_goes(message : str):
 #Generating logs with given message in cloudwatch
 def write_logs_nexrad(message : str):
     clientlogs.put_log_events(
-    logGroupName = "assignment1-logs",
+    logGroupName = "assignment2-logs",
     logStreamName = "nexrad-logs",
     logEvents = [
         {
@@ -148,7 +148,14 @@ def copy_to_public_bucket(src_bucket_name, src_object_key, dest_bucket_name, des
 
 # Establishes a connection to the goes database
 def conn_filenames_goes():
-    conn = sqlite3.connect("filenames_goes.db")
+    object_key = 'filenames_goes.db'
+    local_path = os.path.join(os.path.dirname(__file__), 'filenames_goes.db')
+
+    s3client.download_file('damg-test', object_key, local_path)
+    
+    # Establish a connection to the database
+    conn = sqlite3.connect(local_path)
+    # conn = sqlite3.connect('filenames_goes.db')
     c = conn.cursor()
     return c
 
@@ -188,7 +195,13 @@ def list_filenames_goes(year, day, hour):
 
 # Establishes a connection to the nexrad database
 def conn_filenames_nexrad():
-    conn = sqlite3.connect("filenames_nexrad.db")
+    object_key = 'filenames_nexrad.db'
+    local_path = os.path.join(os.path.dirname(__file__), 'filenames_nexrad.db')
+    s3client.download_file('damg-test', object_key, local_path)
+    
+    # Establish a connection to the database
+    conn = sqlite3.connect(local_path)
+    # conn = sqlite3.connect('filenames_nexrad.db')
     c = conn.cursor()
     return c
 
@@ -253,7 +266,7 @@ def read_metadata_noaa():
 
 
 #Performing filename validations on multiple conditions
-def validate_file(filename):
+def validate_file_goes(filename):
     """Validate if user provided a valid file name to get URL"""
     regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
     prod, year, day, hour= read_metadata_noaa()
@@ -291,6 +304,72 @@ def validate_file(filename):
     elif (x[-1][-3:]!='.nc'):
         count+=1
         message="Please provide valid file extension"
+    elif (count==0):
+        message="Valid file"
+    return (message)
+
+
+#Reading metadata from SQLite DB and storing in sets
+def read_metadata_nexrad():
+    """Read the metadata from sqlite db"""
+    station=set()
+    year=set()
+    month=set()
+    day=set()
+    db = sqlite3.connect("filenames_nexrad.db")
+    cursor = db.cursor()
+    meta_data=cursor.execute('''SELECT Station, Year , Month, Day FROM filenames_nexrad''')
+    for record in meta_data:
+        station.add(record[0])
+        year.add(record[1])
+        month.add(record[2])
+        day.add(record[3])
+    return station, year, month, day
+
+
+#Performing filename validations on multiple conditions
+def validate_file_nexrad(filename):
+    """Validate if user provided a valid file name to get URL"""
+    regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
+    station, year, month, day= read_metadata_nexrad()
+    count=0
+    message=""
+    x=filename.split("_")
+    stat=x[0][:4]
+    y=x[0][4:8]
+    m=x[0][8:10]
+    d=x[0][10:12]
+    hh=x[1][:2]
+    mm=x[1][2:4]
+    ss=x[1][4:6]
+    
+    if(regex.search(filename) != None):
+        count+=1
+        message="Please avoid special character in filename"
+    elif (len(x[0])!=12):
+        count+=1
+        message="Please provide station ID, valid date"
+    elif (stat not in station):
+        count+=1
+        message="Please provide valid station ID"
+    elif (y not in year):
+        count+=1
+        message="Please provide valid year"
+    elif (m not in month):
+        count+=1
+        message="Please provide valid month"
+    elif (len(x[1])!=6):
+        count+=1
+        message="Please provide valid timestamp"
+    elif (int(hh)>23):
+        count+=1
+        message="Please provide valid hour"
+    elif (int(mm)>59):
+        count+=1
+        message="Please provide valid minutes"
+    elif (int(ss)>59):
+        count+=1
+        message="Please provide valid seconds"
     elif (count==0):
         message="Valid file"
     return (message)

@@ -14,7 +14,7 @@ if "access_token" in st.experimental_get_query_params() and st.experimental_get_
     st.header("")
 
 
-    BASE_URL = "http://localhost:8000"
+    BASE_URL = "http://fastapi:8080"
 
 
     col1, col2, col3, col4 = st.columns(4, gap="large")
@@ -95,7 +95,7 @@ if "access_token" in st.experimental_get_query_params() and st.experimental_get_
             "Authorization": f"Bearer {st.experimental_get_query_params()['access_token'][0]}"
         }
         # Set up the endpoint URL for authenticated requests
-        user_info_url = "http://localhost:8000/users/me"
+        user_info_url = "http://fastapi:8080/users/me"
         # Send a GET request to the user info endpoint to get the user's information
         try:
             response = requests.get(user_info_url, headers=headers)
@@ -152,7 +152,7 @@ if "access_token" in st.experimental_get_query_params() and st.experimental_get_
             "Authorization": f"Bearer {st.experimental_get_query_params()['access_token'][0]}"
         }
         # Set up the endpoint URL for authenticated requests
-        user_info_url = "http://localhost:8000/users/me"
+        user_info_url = "http://fastapi:8080/users/me"
         # Send a GET request to the user info endpoint to get the user's information
         try:
             response = requests.get(user_info_url, headers=headers)

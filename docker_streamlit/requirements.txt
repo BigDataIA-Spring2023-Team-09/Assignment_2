@@ -20,6 +20,7 @@ crypto==1.4.1
 cryptography==39.0.1
 cycler==0.11.0
 decorator==5.1.1
+distlib==0.3.6
 diagrams==0.23.3
 ecdsa==0.18.0
 entrypoints==0.4
@@ -28,6 +29,7 @@ extra-streamlit-components==0.1.56
 Faker==17.0.0
 fastapi==0.92.0
 favicon==0.7.0
+filelock==3.8.0
 folium==0.14.0
 fonttools==4.38.0
 gitdb==4.0.10
@@ -62,8 +64,11 @@ packaging==23.0
 pandas==1.5.3
 passlib==1.7.4
 Pillow==9.4.0
+pipenv==2022.8.24
+platformdirs==2.5.2
 pluggy==1.0.0
 protobuf==3.20.3
+py==1.11.0
 pyarrow==11.0.0
 pyasn1==0.4.8
 pycparser==2.21
@@ -115,12 +120,12 @@ toml==0.10.2
 tomli==2.0.1
 toolz==0.12.0
 tornado==6.2
-typed-ast==1.5.4
 typing_extensions==4.5.0
 tzdata==2022.7
 tzlocal==4.2
 urllib3==1.26.14
 uvicorn==0.20.0
 validators==0.20.0
-watchdog==2.2.1
+virtualenv==20.16.3
+virtualenv-clone==0.5.7
 zipp==3.14.0
