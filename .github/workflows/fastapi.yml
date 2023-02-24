@@ -23,20 +23,17 @@ jobs:
       - 
         name: Install pipenv
         run: pip install pipenv
-      - uses: actions/checkout@v3
-      - name: Decrypt large secret
-        run: ./decrypt_secret.sh
-        env:
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          USER_BUCKET_NAME: ${{ secrets.USER_BUCKET_NAME }}
       - 
         name: Run tests
         working-directory: ./fastapi
         run: |
           pipenv install -r requirements.txt
           pipenv run pytest -v
-          
+        with:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          USER_BUCKET_NAME: ${{ secrets.USER_BUCKET_NAME }}
+
         # Running pytest
       # -
       #   name: Login to Docker Hub
@@ -48,7 +45,7 @@ jobs:
       #   name: Set up Docker Buildx
       #   uses: docker/setup-buildx-action@v2
       # -
-      #   name: Build and push
+      #   name: Build and push`
       #   uses: docker/build-push-action@v4
       #   with:
       #     context: ./fastapi    # path to dockerfile
