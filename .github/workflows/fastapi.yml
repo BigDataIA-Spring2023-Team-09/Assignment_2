@@ -26,13 +26,13 @@ jobs:
       - 
         name: Run tests
         working-directory: ./fastapi
-        run: |
-          pipenv install -r requirements.txt
-          pipenv run pytest -v
-        with:
+        env:
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
           USER_BUCKET_NAME: ${{ secrets.USER_BUCKET_NAME }}
+        run: |
+          pipenv install -r requirements.txt
+          pipenv run pytest -v
 
         # Running pytest
       # -
