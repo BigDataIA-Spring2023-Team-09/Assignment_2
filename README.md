@@ -18,6 +18,12 @@ This project builds up on the Assignment-1 deliverables in which we built a data
 ### Application public link:
 http://34.74.233.133:8000
 
+### Code review test report:
+https://damg-test.s3.amazonaws.com/Testing+/Code+Review+of+Assignment+1+%E2%80%93+Team+8++(1).docx
+
+### End user test report:
+https://damg-test.s3.amazonaws.com/Testing+/Enduser+testing+-+Team+11.xlsx
+
 ### Attestation:
 WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK
 Contribution:
