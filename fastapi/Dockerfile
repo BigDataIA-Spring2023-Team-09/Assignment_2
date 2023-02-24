@@ -18,6 +18,6 @@ ADD base_model.py basic_func.py location.db test_main.py users.db /app/
 
 ### Container Env same as local at this point
 
-EXPOSE 8080
+EXPOSE 8090
 
-CMD ["gunicorn" ,"-w", "4", "-k", "uvicorn.workers.UvicornWorker" , "--bind", "0.0.0.0:8080", "main:app"]
+CMD ["gunicorn" ,"-w", "4", "-k", "uvicorn.workers.UvicornWorker" , "--bind", "0.0.0.0:8090", "main:app"]

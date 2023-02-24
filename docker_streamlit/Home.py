@@ -53,7 +53,7 @@ def login():
             "Authorization": f"Bearer {st.experimental_get_query_params()['access_token'][0]}"
         }
         # Set up the endpoint URL for authenticated requests
-        user_info_url = "http://fastapi:8080/users/me"
+        user_info_url = "http://fastapi:8090/users/me"
         # Send a GET request to the user info endpoint to get the user's information
         try:
             response = requests.get(user_info_url, headers=headers)
@@ -81,7 +81,7 @@ def login():
     if login_button:
         st.session_state.username = username
         st.session_state.password = password
-        url = "http://fastapi:8080/token"
+        url = "http://fastapi:8090/token"
         json_data = {"username": st.session_state.username, "password": st.session_state.password}
 
         response = requests.post(url,json=json_data)        

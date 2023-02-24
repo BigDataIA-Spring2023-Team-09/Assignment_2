@@ -19,7 +19,7 @@ if "access_token" in st.experimental_get_query_params() and st.experimental_get_
     st.header(':blue[Operational locations of NEXRAD sites]')
     with st.spinner('Refreshing map...'):
         # Make request to FastAPI endpoint and get CSV string
-        response = requests.get("http://fastapi:8080/mapping-stations")
+        response = requests.get("http://fastapi:8090/mapping-stations")
         csv_string = response.content.decode("utf-8")
 
         # Convert CSV string to DataFrame
