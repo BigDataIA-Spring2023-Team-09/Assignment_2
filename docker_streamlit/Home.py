@@ -29,6 +29,11 @@ if 'disable_login' not in st.session_state:
 if 'disable_logout' not in st.session_state:
     st.session_state.disable_logout = True
 
+if "access_token" not in st.experimental_get_query_params() or st.experimental_get_query_params()["access_token"][0]=="None":
+        st.session_state.disable_login = False
+        st.session_state.logged_in = False
+        st.session_state.disable_logout = True
+
 # define the Streamlit login page
 def login():
     st.title("Welcome to NOAA dashboard!")
@@ -113,12 +118,11 @@ def login():
             st.experimental_set_query_params(**query_params)
 
             logtxtbox.text("")
-
-        if (st.session_state.logged_in and st.session_state and st.session_state.username):
+    
+        if "access_token" in st.experimental_get_query_params() and st.experimental_get_query_params()["access_token"][0]!="None":
             st.write(f'Welcome: {st.session_state.username}')
         else:
             st.write('Guest user')
-
     
 def main():
     if login():
