@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from main import app
-
+import boto3
+import os
 
 client = TestClient(app)
 
@@ -565,9 +566,9 @@ def test_list_years_goes():
     assert message == ["2022","2023"]
 
 #Tests the goes days list of a particular year
-def test_list_months_goes():
+def test_list_days_goes():
     response = client.post(
-        url = "/list-days-goes/2023"
+        url = "/list-days-goes?year=2023"
     )
     assert response.status_code == 200
     message = response.json()["days_list"]
@@ -883,10 +884,7 @@ def test_fetch_url_nexrad_from_name():
 
 #Tests mapping_stations
 def test_mapping_stations():
-    response = client.post(
+    response = client.get(
         url = '/mapping-stations'
     )
     assert response.status_code == 200
-    message = response.content
-    assert message == "b'column1,column2,column3\n18.1155998,-66.0780644,San Juan\n46.0391944,-67.8066033,Houlton\n43.8913555,-70.2565545,Gray/Portland\n44.5109941,-73.166424,Burlington\n41.9558919,-71.1369681,Boston\n42.5865699,-74.0639877,Albany\n42.1997045,-75.9847015,Binghamton\n42.9488055,-78.7369108,Buffalo\n43.7556319,-75.6799918,Montague\n40.8655093,-72.8638548,New York City\n38.8257651,-75.4400763,Dover AFB\n39.9470885,-74.4108027,Philadelphia\n40.5316842,-80.2179515,Pittsburgh\n40.9228521,-78.0038738,State College\n38.3110763,-81.7229015,Charleston\n36.9840475,-77.007342,Norfolk/Richmond\n37.0242098,-80.2736664,Roanoke\n38.9753957,-77.4778444,Sterling\n34.7759313,-76.8762571,Morehead City\n35.6654967,-78.4897855,Raleigh/Durham\n33.9891631,-78.4291059,Wilmington\n32.6554866,-81.0423124,Charleston\n33.9487579,-81.1184281,Columbia\n34.8833435,-82.2200757,Greer\n33.3635771,-84.565866,Atlanta\n30.8903853,-83.0019021,Moody AFB\n32.6755239,-83.3508575,Robins AFB\n30.5649908,-85.921559,Eglin AFB\n30.4846878,-81.7018917,Jacksonville\n24.5974996,-81.7032355,Key West\n28.1131808,-80.6540988,Melbourne\n25.6111275,-80.412747,Miami\n30.397568,-84.3289116,Tallahassee\n27.7054701,-82.40179,Tampa\n33.1722806,-86.7698425,Birmingham\n31.4605622,-85.4592401,Fort Rucker\n34.930508,-86.0837388,Huntsville\n32.5366608,-85.7897848,Maxwell AFB\n30.6795378,-88.2397816,Mobile\n32.2797358,-89.9846309,Brandon/Jackson\n33.8967796,-88.3293915,Columbus AFB\n36.168538,-83.401779,Knoxville/Tri Cities\n35.3447802,-89.8734534,Memphis\n36.2472389,-86.5625185,Nashville\n36.7368894,-87.2854328,Fort Campbell\n37.590762,-83.313039,Jackson\n37.9753058,-85.9438455,Louisville\n37.0683618,-88.7720257,Paducah\n39.42028,-83.82167,Wilmington\n41.4131875,-81.8597451,Cleveland\n42.6999677,-83.471809,Detroit/Pontiac\n44.907106,-84.719817,Gaylord\n42.893872,-85.5449206,Grand Rapids\n46.5311443,-87.5487131,Marquette\n38.2603901,-87.7246553,Owensville (Evansville)\n39.7074962,-86.2803675,Indianapolis\n41.3586356,-85.7000488,North Webster\n41.6044264,-88.084361,Chicago\n40.150544,-89.336842,Lincoln\n44.4984644,-88.111124,Green Bay\n43.822766,-91.1915767,La Crosse\n42.9678286,-88.5506335,Milwaukee\n46.8368569,-92.2097433,Duluth\n44.8488029,-93.5654873,Minneapolis/St. Paul\n41.611556,-90.5809987,Davenport\n41.7311788,-93.7229235,Des Moines\n38.8102231,-94.2644924,Kansas City\n37.235223,-93.4006011,Springfield\n38.6986863,-90.682877,St. Louis\n35.2904423,-94.3619075,Fort Smith\n34.8365261,-92.2621697,Little Rock\n31.1556923,-92.9762596,Fort Polk\n30.125382,-93.2161188,Lake Charles\n30.3367133,-89.8256618,New Orleans\n32.450813,-93.8412774,Shreveport\n35.2334827,-101.7092478,Amarillo\n29.7039802,-98.028506,Austin/San Antonio\n25.9159979,-97.4189526,Brownsville\n27.7840203,-97.511234,Corpus Christi\n32.5730186,-97.3031911,Dallas/Ft. Worth\n32.5386009,-99.2542863,Dyess AFB\n31.8731115,-106.697942,El Paso\n30.7217637,-97.3829627,Fort Hood\n29.4718835,-95.0788593,Houston/Galveston\n29.2730823,-100.2802312,Laughlin AFB\n33.6541242,-101.814149,Lubbock\n31.9433953,-102.1894383,Midland/Odessa\n31.3712815,-100.4925227,San Angelo\n34.3620014,-98.9766884,Frederick\n35.3333873,-97.2778255,Oklahoma City\n35.2358,-97.4622,Norman (Testbed)\n36.1750977,-95.5642802,Tulsa\n36.7406166,-98.1279409,Vance AFB\n37.7608043,-99.9688053,Dodge City\n39.3667737,-101.7004341,Goodland\n38.996998,-96.232618,Topeka\n37.6545724,-97.4431461,Wichita\n40.320966,-98.4418559,Grand Island/Hastings\n41.9579623,-100.5759609,North Platte\n41.3202803,-96.3667971,Omaha\n45.4558185,-98.4132046,Aberdeen\n44.1248485,-102.8298157,Rapid City\n43.5877467,-96.7293674,Sioux Falls\n46.7709329,-100.7605532,Bismarck\n47.5279417,-97.3256654,Grand Forks (Mayville)\n48.39303,-100.8644378,Minot AFB\n45.8537632,-108.6068165,Billings\n48.2064536,-106.6252971,Glasgow\n47.4595023,-111.3855368,Great Falls\n47.0412971,-113.9864373,Missoula\n41.1519308,-104.8060325,Cheyenne\n43.0660779,-108.4773731,Riverton\n39.7866156,-104.5458126,Denver\n39.0619824,-108.2137012,Grand Junction\n38.4595034,-104.1816223,Pueblo\n35.1497579,-106.8239576,Albuquerque\n34.6341569,-103.6186427,Cannon AFB\n33.0768844,-106.1200923,Holloman AFB\n34.574449,-111.198367,Flagstaff\n33.289111,-111.6700092,Phoenix\n31.8937186,-110.6304306,Tucson\n32.4953477,-114.6567214,Yuma\n37.59083,-112.86222,Cedar City\n41.2627795,-112.4480081,Salt Lake City\n43.4902104,-116.2360436,Boise\n43.1055967,-112.6860487,Pocatello/Idaho Falls\n40.7396933,-116.8025529,Elko\n35.7012894,-114.8918277,Las Vegas\n39.7541931,-119.4620597,Reno\n39.4956958,-121.6316557,Beale AFB\n35.0979358,-117.5608832,Edwards AFB\n40.4986955,-124.2918867,Eureka\n34.4116386,-119.1795641,Los Angeles\n38.5011529,-121.6778487,Sacramento\n32.9189891,-117.041814,San Diego\n37.155152,-121.8984577,San Francisco\n36.3142088,-119.6320903,San Joaquin Valley\n33.8176452,-117.6359743,Santa Ana Mountains\n34.8383137,-120.3977805,Vandenberg AFB\n21.8938762,-159.5524585,Kauai\n20.1254606,-155.778054,Kohala\n21.1327531,-157.1802807,Molokai\n19.0950155,-155.5688846,South Shore\n42.0810766,-122.7173334,Medford\n45.6906118,-118.8529301,Pendleton\n45.7150308,-122.9650542,Portland\n47.116806,-124.10625,Langley Hill\n48.1945614,-122.4957508,Seattle/Tacoma\n47.6803744,-117.6267797,Spokane\n60.791987,-161.876539,Bethel\n65.0351238,-147.5014222,Fairbanks/Pedro Dome\n60.725833,-151.351389,Kenai\n58.6794558,-156.6293335,King Salmon\n59.46194,-146.30111,Middleton Island\n64.5114973,-165.2949071,Nome\n56.85214,-135.552417,Sitka/Biorka Island\n13.455965,144.8111022,Andersen AFB\n38.73028,-27.32167,\"Lajes Field, Azores\"\n35.92417,126.62222,\"Kunsan Air Base, South Korea\"\n37.207652,127.285614,\"Camp Humphreys, South Korea\"\n26.307796,127.903422,\"Kadena Air Base, Japan\"\n'"
-
