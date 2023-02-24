@@ -27,7 +27,6 @@ s3client = boto3.client('s3',
                         aws_secret_access_key = os.environ.get('AWS_SECRET_KEY')
                         )
 
-
 goes18_bucket = 'noaa-goes18'
 user_bucket_name = os.environ.get('USER_BUCKET_NAME')
 nexrad_bucket = 'noaa-nexrad-level2'
