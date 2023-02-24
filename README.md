@@ -13,7 +13,7 @@ This project builds up on the Assignment-1 deliverables in which we built a data
 * <code>mapping.py</code>: We scraped the URL https://en.wikipedia.org/wiki/NEXRAD#Operational_locations for radar sites. Stored the location table in <code>SQLite DB</code> and plotted an interactive map using <code>folium</code> package.<br>
 
 ### Documentation for detailed explanation:
-https://northeastern-my.sharepoint.com/:w:/g/personal/senthilnathan_l_northeastern_edu/EW-ewk9XCppMua62mNaKEsMBPO1I752-aLWQjYEBs2ruyQ?e=4%3ARFz84J&at=9&CID=3254ADBB-B5CC-4A56-BC82-D7E6FFBF2AD2
+https://docs.google.com/document/d/1RImm4RsAOlxZyvKpwL9RWaHuR_on8LUgoqhEBmin86o/edit?usp=sharing
 
 ### Application public link:
 http://34.74.233.133:8000
