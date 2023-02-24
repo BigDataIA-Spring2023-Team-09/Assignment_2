@@ -133,3 +133,6 @@ dmypy.json
 *Pipfile
 *Pipfile.lock
 fastapi/.env
+docker_streamlit/pages/.env
+docker_streamlit/.env
+.env
