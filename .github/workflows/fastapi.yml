@@ -19,7 +19,7 @@ jobs:
         name: Loading file from S#
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
-          command: cp
+          source: fastapi/filenames_goes.db
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
       - 
