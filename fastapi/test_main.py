@@ -33,7 +33,7 @@ def test_list_years_nexrad():
     response = client.get("/list-years-nexrad")
     assert response.status_code == 200
     message = response.json()["year_list"]
-    assert message == ["2022","2023"]
+    assert message == ['2023', '2022']
 
 #Tests the nexrad month list of a particular year
 def test_list_months_nexrad():
@@ -42,7 +42,7 @@ def test_list_months_nexrad():
     )
     assert response.status_code == 200
     message = response.json()["month_list"]
-    assert message == ["01","02"]
+    assert message == ['02', '01']
 
 #Tests the nexrad days returned for particular year and month
 def test_list_days_nexrad():
@@ -606,7 +606,28 @@ def test_list_days_goes():
         "031",
         "032",
         "033",
-        "034"
+        "034",
+        "035",
+        "036",
+        "037",
+        "038",
+        "039",
+        "040",
+        "041",
+        "042",
+        "043",
+        "044",
+        "045",
+        "046",
+        "047",
+        "048",
+        "049",
+        "050",
+        "051",
+        "052",
+        "053",
+        "054",
+        "055",
     ]
 
 #Tests the goes hours list of a particular year and day
