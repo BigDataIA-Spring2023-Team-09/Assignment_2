@@ -19,9 +19,12 @@ jobs:
         name: Loading file from S#
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
-          source: fastapi/filenames_goes.db
+          command: cp
+          source: s3://damg-test/filenames_nexrad.db
+          destination: fastapi/filenames_nexrad.db
           AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          aws_region: us-east-1
       - 
         name: Set up Python 3.10
         uses: actions/setup-python@v4
