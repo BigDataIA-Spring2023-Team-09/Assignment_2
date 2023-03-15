@@ -23,7 +23,7 @@ This project builds up on the Assignment-1 deliverables in which we built a data
 https://codelabs-preview.appspot.com/?file_id=1QoOS-hG-6P2K4d-iLgIyLbFDi6EW6gLxXD5YU-UdKAM#8
 
 ### Application public link:
-http://34.74.233.133:8000
+http://34.74.233.133:8001
 
 ### Code review test report:
 https://damg-test.s3.amazonaws.com/Testing+/Code+Review+of+Assignment+1+%E2%80%93+Team+8++(1).docx
